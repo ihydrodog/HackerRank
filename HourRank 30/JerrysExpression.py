@@ -13,21 +13,25 @@ import sys
 # The function accepts STRING expression as parameter.
 #
 
-def _getOperand( queue ):
+def _getOperand( queue, res, shouldBe = None ):
     v = queue[0]
     if v == '?':
+        value = 1 if shouldBe is None else shouldBe
+        res.append( value )
         queue.pop(0)
-        return v
+        return value
     else:
-        return _calculate( v )
+        return _calculate( queue, res, shouldBe )
 
-def _calculate( queue ):
+def _calculate( queue, res, shouldBe ):
     op = queue.pop(0)
-    l = _getOperand( queue )
-    r = _getOperand( queue )
-    return __cal( op, l, r )
 
-def __cal( op, l, r):
+
+    l = _getOperand( queue, res )
+    r = _getOperand( queue, res, l if op =='-' else -l )
+    return __calc( op, l, r )
+
+def __calc( op, l, r):
     if op == '+':
         return l+r
     elif op == '-':
@@ -36,7 +40,13 @@ def __cal( op, l, r):
 def solve(expression):
     queue = list( expression )
 
-    ret = _calculate( queue )
+    res = []
+    _calculate( queue, res, 0 )
+
+    return res
+
+
+print( solve( '-?-??'))
 
 
 if __name__ == '__main__':

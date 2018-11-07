@@ -38,12 +38,38 @@ def __calc( op, l, r):
         return l-r
 
 def solve(expression):
-    queue = list( expression )
 
-    res = []
-    _calculate( queue, res, 0 )
+    # res = []
+    # _calculate( queue, res, 0 )
 
-    return res
+    operators = ['-','+']
+    expression = list(expression)
+
+    stack = [ expression.pop(0) ]
+
+    while len(stack) > 1 or expression:
+        c = stack[-1]
+
+        if c in operators:
+            # need left operand
+            stack.append(expression.pop(0))
+        else:
+            if stack[-2] not in operators:
+                right, left = stack.pop(), stack.pop()
+                if left == '?':
+                    left = 1
+                if right == '?':
+                    right = 1
+
+                operator = stack.pop()
+
+                result = left + right if operator=='+' else left - right
+                stack.append( result )
+            else:
+                # need right operand
+                stack.append(expression.pop(0))
+
+    return stack[0]
 
 
 print( solve( '-?-??'))

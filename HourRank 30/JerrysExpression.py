@@ -38,88 +38,102 @@ def __calc( op, l, r):
         return l-r
 
 
-def calculate( expression, res = None, debt = None, debtForPositiveOperand = None, debtForNegativeOperand = None ):
+def calculate( expression, debt = None, debtForPositiveOperand = None, debtForNegativeOperand = None ):
     operators = ['-','+']
 
+    index = 0
+    stack = [ ( expression[index], index) ]
+    index+=1
 
-    stack = [ expression.pop(0) ]
+    res = [None]*len(expression)
 
     curSign = 1 # 1 means positive sign
 
     positiveCount, negativeCount = 0, 0
 
-    while len(stack) > 1 or expression:
-        c = stack[-1]
+    signQueue = [curSign]
+
+    while len(stack) > 1 or index < len(expression):
+        info = stack[-1]
+        c = info[0]
 
         if c in operators:
             if c == '-':
                 curSign = -curSign
+            signQueue.append( curSign )
 
             # need left operand
-            stack.append(expression.pop(0))
+            stack.append( [expression[index], index] )
+            index += 1
         else:
-            if stack[-2] not in operators:
+            if stack[-2][0] not in operators:
                 right, left = stack.pop(), stack.pop()
-                operator = stack.pop()
-                if left == '?':
+                leftIndex = left[1]
+                rightIndex = right[1]
+                operator = stack.pop()[0]
+
+                if right[0] == '?':
                     if curSign > 0:
                         positiveCount+=1
                     else:
                         negativeCount+=1
-                    left = 1
-                if right == '?':
+
+                    res[rightIndex] = curSign
+                    right[0] = 1
+
+                signQueue.pop()
+                curSign = signQueue[-1]
+
+                if left[0] == '?':
                     if curSign > 0:
-                        if operator == '+':
-                            positiveCount+=1
-                        else:
-                            negativeCount+=1
+                        positiveCount+=1
                     else:
-                        if operator == '-':
-                            positiveCount+=1
-                        else:
-                            negativeCount+=1
-                    right = 1
+                        negativeCount+=1
 
-                curSign = operator == '+'
+                    res[leftIndex] = curSign
+                    left[0] = 1
 
-                result = left + right if operator=='+' else left - right
-                stack.append( result )
+                result = left[0] + right[0] if operator=='+' else left[0] - right[0]
+
+                stack.append( (result, None) )
             else:
                 # need right operand
-                stack.append(expression.pop(0))
+                stack.append( [ expression[index], index] )
+                index += 1
 
-    return stack[0], (positiveCount, negativeCount)
+    return stack[0][0], (positiveCount, negativeCount), res
 
 def solve(expression):
     traversed = list(expression)
-    sumIfQuestionMarkIsOne, (positiveCount, negativeCount) = calculate( traversed, None )
+    sumIfQuestionMarkIsOne, (positiveCount, negativeCount), signs = calculate( traversed, None )
 
     debtForPositiveOperand, debtForNegativeOperand = 0, 0
-    if sum > 0:
-        debt = sum
+    if sumIfQuestionMarkIsOne > 0:
+        debt = sumIfQuestionMarkIsOne
         debtForNegativeOperand = math.ceil( debt/negativeCount )
-    elif sum < 0:
-        debt = -sum
+    elif sumIfQuestionMarkIsOne < 0:
+        debt = -sumIfQuestionMarkIsOne
         debtForPositiveOperand = math.ceil( debt/positiveCount )
 
-    traversed = list(expression)
-
     result = []
-    _, _ = calculate( traversed, result, debt, debtForPositiveOperand, debtForNegativeOperand )
+    for sign in signs:
+        if sign is not None:
+            if sign > 0:
+                if debtForPositiveOperand > 0:
+                    v = min( debtForPositiveOperand, debt )
+                    debt -= v
+                    result.append( 1+v )
+                else:
+                    result.append( 1 )
+            else:
+                if debtForNegativeOperand > 0:
+                    v = min( debtForNegativeOperand, debt )
+                    debt -= v
+                    result.append( 1+v )
+                else:
+                    result.append( 1 )
 
     return result
 
-print( solve( '-?-??'))
+print( solve( '+--???--???'))
 
-
-if __name__ == '__main__':
-    fptr = open(os.environ['OUTPUT_PATH'], 'w')
-
-    expression = input()
-
-    res = solve(expression)
-
-    fptr.write('\n'.join(map(str, res)))
-    fptr.write('\n')
-
-    fptr.close()

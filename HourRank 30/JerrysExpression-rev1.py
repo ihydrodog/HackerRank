@@ -79,5 +79,56 @@ def solve(expression):
     return values
 
 
+def solve( expression ):
+    ki = 0
+    stack = []
+    posi = []
+    nega = []
+    sign = 1
+    for char in expression:
+        if char == '+':
+            stack.append( ( 1, sign ) )
+        elif char == '-':
+            stack.append( ( 3, sign ) )
+        elif char == '?':
+            if sign > 0:
+                posi.append( ki )
+            else:
+                nega.append( ki )
+            ki += 1
+
+            while stack:
+                last, sign = stack.pop()
+                if last == 1 or last == 3:
+                    sign = sign if last == 1 else -sign
+                    stack.append( ( last + 1, sign ) )
+                    break
+
+    posiSize = len( posi )
+    negaSize = len( nega )
+    result = [ 1, ] * ki
+    diff = posiSize - negaSize
+    if diff > 0:
+        remainder = diff % negaSize
+        quotient = diff // negaSize
+        for i in range( negaSize ):
+            index = nega[ i ]
+            if i < remainder:
+                result[ index ] += quotient + 1
+            else:
+                result[ index ] += quotient
+    else:
+        remainder = -diff % posiSize
+        quotient = -diff // posiSize
+        for i in range( posiSize ):
+            index = posi[ i ]
+            if i < remainder:
+                result[ index ] += quotient + 1
+            else:
+                result[ index ] += quotient
+
+    return result
+
+print( solve( '+--???+??'))
 
 print( solve( '-----???+?+???+?+??'))

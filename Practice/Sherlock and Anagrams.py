@@ -5,18 +5,25 @@ import os
 import random
 import re
 import sys
-from collections import Counter
 
 
-def findAnagram(a, s):
-    pass
 
 
 # Complete the sherlockAndAnagrams function below.
 def sherlockAndAnagrams(s):
     lenOfS = len(s)
-    for length in range(1, lenOfS - 1):
+    count = 0
+    for length in range(1, lenOfS ):
         for startPos in range(lenOfS - length):
             substring = s[startPos:startPos + length]
+            sortedAnagram = tuple(sorted(substring))
 
-            findAnagram(substring, s[startPos + 1:])
+
+            for startPos2 in range( startPos+1, lenOfS-length+1 ):
+                if tuple(sorted( s[startPos2:startPos2+length])) == sortedAnagram:
+                    count+=1
+    return count
+
+
+
+print( sherlockAndAnagrams( 'cdcd'))

@@ -24,43 +24,40 @@ def findShortest(graph_nodes, graph_from, graph_to, ids, val):
         _from = graph_from[i]
         _to = graph_to[i]
 
-        adjacentNodeMap.get( _from, [] ).append( _to )
-        adjacentNodeMap.get( _to, [] ).append( _from )
+        adjacentNodeMap.setdefault( _from, [] ).append( _to )
+        adjacentNodeMap.setdefault( _to, [] ).append( _from )
 
+
+    minDistance = None
     # traverse
+    for index, color in enumerate( ids ):
+        if color == val:
+            startNode = index+1
 
-    startNode = adjacentNodeMap.keys()[0]
+            visited = set( (startNode,) )
 
-    visited = set()
+            toBeVisited = list( (adjacent, 1) for adjacent in adjacentNodeMap[ startNode ] )
+            while toBeVisited:
+                curNode, distance = toBeVisited.pop(0)
+                visited.add( curNode )
 
-    toBeVisited = list()
-    toBeVisited.add( startNode )
-    distance = -1
-    minDistance = -1
-    while toBeVisited:
-        curNode = toBeVisited.pop(0)
-        visited.add( curNode )
+                if ids[curNode-1] == val:
+                    if minDistance is None or minDistance > distance:
+                        # for the min value
+                        if distance == 1:
+                            return distance
 
-        if ids[curNode] == val:
-            if distance < 0:
-                # init
-                distance = 0
-            else:
-                if minDistance > distance:
-                    minDistance = distance
+                        minDistance = distance
 
-                distance = 0 # reset to continue searching
-        else:
-            if distance >= 0:
-                distance += 1   # or weight
-
-        for adjacent in adjacentNodeMap[curNode]:
-            if adjacent not in visited:
-                toBeVisited.add( adjacent )
+                if minDistance is None or distance < minDistance-1: # dont need to traverse further
+                    for adjacent in adjacentNodeMap[curNode]:
+                        if adjacent not in visited:
+                            toBeVisited.append( (adjacent, distance + 1) )
 
 
-    return minDistance
+    return minDistance if minDistance is not None else -1
 
 
 
+print( findShortest( 5, (1, 1, 2, 3,), (2, 3, 4, 5), (1, 2, 3, 3, 2), 2))
 

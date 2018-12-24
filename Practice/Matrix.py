@@ -6,69 +6,42 @@ import random
 import re
 import sys
 
+def dfs( edges, machines, costTable, root, parent ):
+    cost = 0
+    for node, c in edges[root]:
+        if node != parent:
+            dfs( edges, machines, costTable, node, root )
+            cost += min( costTable[node][1] + c, costTable[node][0] )
 
-def findPathAndCut( edges, costTable, machines, start ):
-    queue = list( )
-    queue.append( ( start, list( (start,) ) ) )
-    visited = set()
+    if root in machines:
+        f1 = cost
+        f0 = math.inf
+    else:
+        f0 = cost
+        f1 = math.inf
+        for node, c in edges[root]:
+            if node != parent:
+                f1 = min( f1, cost+costTable[node][1]-min( costTable[node][1]+c, costTable[node][0] ) )
 
-    while queue:
-        curNode, path = queue.pop( 0 )
-        visited.add( curNode )
+    costTable[root] = (f0, f1 )
 
-        if curNode in machines and curNode != start :
-
-            # find the chepeast and cut
-            cheapestNode = None
-            cheapestCost = None
-            for index in range(len(path) - 1):
-                n0 = path[index]
-                n1 = path[index + 1]
-                edgeCost = costTable[(n0, n1) if n0 < n1 else (n1, n0)]
-                if cheapestCost is None or cheapestCost > edgeCost:
-                    cheapestCost = edgeCost
-                    cheapestNode = (n0, n1)
-
-
-            n0, n1 = cheapestNode
-            edges[ n0 ].remove( n1 )
-            edges[ n1 ].remove( n0 )
-
-            return cheapestCost, ( start, curNode )
-        else:
-            for n in edges[curNode]-visited:
-                newPath = list( path )
-                newPath.append( n )
-                queue.append( ( n, newPath ) )
-
-    return None, (None, None)
 
 # Complete the minTime function below.
 def minTime(roads, machines):
+
     edges = {}
+    for (f,t, c) in roads:
+        edges.setdefault( f, list() ).append( (t, c) )
+        edges.setdefault( t, list() ).append( (f, c) )
 
     costTable = {}
-    for r in roads:
-        a, b = r[0], r[1]
-        edges.setdefault( a, set() ).add( b )
-        edges.setdefault( b, set() ).add( a )
 
-        costTable[ ( a, b ) if a<b else (b, a) ] = r[2]
+    root = machines[-1]
 
-    costSum = 0
-    # find paths
+    dfs( edges, machines, costTable, root, -1 )
 
-    queue = list( (machines[0], ))
-    while queue:
-        start = queue.pop()
-        cost, (n0, n1) = findPathAndCut( edges, costTable, machines, start )
-        if cost is not None:
-            queue.append( n0 )
-            queue.append( n1 )
-            costSum += cost
+    return min( *costTable[root])
 
-
-    return costSum
 
 print( minTime( ( (0, 3, 3), (1, 4, 4), (1, 3, 4), (0, 2, 5) ), (1, 3, 4) ))
 
